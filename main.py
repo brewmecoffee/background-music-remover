@@ -65,6 +65,24 @@ class TimeRangeFrame(ctk.CTkFrame):
         self.end_time.insert(0, "00:00:00")
         self.end_time.pack(side="left", padx=5)
         
+        # Background Music Selection
+        music_frame = ctk.CTkFrame(self.container, fg_color="transparent")
+        music_frame.grid(row=0, column=2, padx=(5, 15))
+        
+        ctk.CTkLabel(
+            music_frame,
+            text="Music:",
+            font=("Helvetica", 12)
+        ).pack(side="left", padx=5)
+        
+        self.background_music = ctk.CTkComboBox(
+            music_frame,
+            values=["None", "Action", "Chill", "Mysterious"],
+            width=120
+        )
+        self.background_music.set("None")
+        self.background_music.pack(side="left", padx=5)
+        
         # Delete button
         delete_btn = ctk.CTkButton(
             self.container,
@@ -74,7 +92,7 @@ class TimeRangeFrame(ctk.CTkFrame):
             fg_color="#ff4444",
             hover_color="#cc0000"
         )
-        delete_btn.grid(row=0, column=2, padx=(15, 15))
+        delete_btn.grid(row=0, column=3, padx=(15, 15))
         
         # Error label
         self.error_label = ctk.CTkLabel(
@@ -83,7 +101,7 @@ class TimeRangeFrame(ctk.CTkFrame):
             text_color="#ff4444",
             font=("Helvetica", 10)
         )
-        self.error_label.grid(row=1, column=0, columnspan=3, pady=(0, 10))
+        self.error_label.grid(row=1, column=0, columnspan=4, pady=(0, 10))
         
     def validate_time(self, time_str):
         if time_str == "":
@@ -105,7 +123,7 @@ class TimeRangeFrame(ctk.CTkFrame):
                     raise ValueError("Time range exceeds video duration")
                     
             self.error_label.configure(text="")
-            return (self.start_time.get(), self.end_time.get())
+            return (self.start_time.get(), self.end_time.get(), self.background_music.get())
             
         except ValueError as e:
             self.error_label.configure(text=str(e))
@@ -121,6 +139,7 @@ class TimeRangeFrame(ctk.CTkFrame):
             raise ValueError("Invalid time format")
         except:
             raise ValueError("Invalid time format (Use HH:MM:SS)")
+
 class AudioProcessorUI(ctk.CTk):
     def __init__(self):
         super().__init__()

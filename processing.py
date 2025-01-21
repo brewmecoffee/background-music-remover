@@ -137,7 +137,7 @@ class AudioProcessor:
 
             # Process each time range
             total_ranges = len(ranges)
-            for idx, (start_time, end_time) in enumerate(ranges, 1):
+            for idx, (start_time, end_time, background_choice) in enumerate(ranges, 1):
                 if not self.processing:
                     raise InterruptedError("Processing cancelled by user")
 
@@ -163,9 +163,40 @@ class AudioProcessor:
                 separator.separate_to_file(temp_process, temp_dir)
                 logging.info(f"Processed range {idx}: {start_time} - {end_time}")
 
-                # Replace segment with processed audio
+                # Get processed vocals
                 vocals = AudioSegment.from_wav(os.path.join(temp_dir, "temp_process", "vocals.wav"))
-                processed_audio = processed_audio[:start_sec * 1000] + vocals + processed_audio[end_sec * 1000:]
+
+                # Add new background music if selected
+                if background_choice != "None":
+                    try:
+                        # Load and adjust background music
+                        bg_music_path = os.path.join("audio", f"{background_choice}.mp3")
+                        background_music = AudioSegment.from_mp3(bg_music_path)
+
+                        # Adjust background music duration to match segment
+                        segment_duration = end_sec - start_sec
+                        if len(background_music) < segment_duration * 1000:
+                            # Loop the background music if it's shorter than the segment
+                            loops_needed = int(segment_duration * 1000 / len(background_music)) + 1
+                            background_music = background_music * loops_needed
+
+                        # Trim to exact length needed
+                        background_music = background_music[:len(vocals)]
+
+                        # Lower the volume of background music (adjust factor as needed)
+                        background_music = background_music - 10  # Reduce by 10 dB
+
+                        # Mix vocals with new background
+                        mixed_audio = vocals.overlay(background_music)
+                        logging.info(f"Added {background_choice} background music to range {idx}")
+                    except Exception as e:
+                        logging.error(f"Failed to add background music: {str(e)}")
+                        mixed_audio = vocals  # Fallback to vocals only if background music fails
+                else:
+                    mixed_audio = vocals
+
+                # Replace segment with processed audio
+                processed_audio = processed_audio[:start_sec * 1000] + mixed_audio + processed_audio[end_sec * 1000:]
 
                 self.callback({
                     'type': 'progress',
