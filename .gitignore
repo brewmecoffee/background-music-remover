@@ -37,12 +37,6 @@ ENV/
 .settings/
 
 # Project specific
-*.mp4
-*.mp3
-*.wav
-*.avi
-*.mkv
-*.mov
 /temp/
 /output/
 *.log
